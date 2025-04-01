@@ -321,6 +321,33 @@ export default function Home() {
           </Card>
         </motion.div>
       </div>
+
+      <footer className="mt-16 border-t py-8">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="text-center"
+          >
+            <p className="text-sm text-muted-foreground mb-4">Made with ❤️ by</p>
+            <div className="flex items-center justify-center gap-6 font-mono">
+              <div className="group">
+                <span className="text-primary group-hover:text-primary/80 transition-colors duration-200">Nikunj Jakhotiya</span>
+                <div className="h-0.5 w-0 bg-primary group-hover:w-full transition-all duration-300"></div>
+              </div>
+              <div className="group">
+                <span className="text-primary group-hover:text-primary/80 transition-colors duration-200">Sujal Kothari</span>
+                <div className="h-0.5 w-0 bg-primary group-hover:w-full transition-all duration-300"></div>
+              </div>
+              <div className="group">
+                <span className="text-primary group-hover:text-primary/80 transition-colors duration-200">Vedant Dharmadhikari</span>
+                <div className="h-0.5 w-0 bg-primary group-hover:w-full transition-all duration-300"></div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </footer>
     </main>
   )
 }
