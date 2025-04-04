@@ -1,8 +1,7 @@
-// Grammar types
 interface Production {
   lhs: string
   rhs: string[]
-  id: number // Production ID for reduce actions
+  id: number
 }
 
 interface Grammar {
@@ -21,10 +20,9 @@ interface Item {
 interface State {
   id: number
   items: Item[]
-  kernel?: Item[] // For display purposes
+  kernel?: Item[]
 }
 
-// Parse the grammar from string input
 export function parseGrammar(input: string): Grammar {
   const lines = input.trim().split("\n")
   const productions: Production[] = []
@@ -62,10 +60,8 @@ export function parseGrammar(input: string): Grammar {
     productions.push({ lhs, rhs: rhs.length === 1 && rhs[0] === "ε" ? [] : rhs, id: i + 1 })
   }
 
-  terminals.add("$")
-
+  terminals.add("$")  
   const startSymbol = productions[0].lhs
-
   const augmentedStartSymbol = `${startSymbol}'`
   productions.unshift({
     lhs: augmentedStartSymbol,
@@ -131,7 +127,7 @@ function computeFirst(grammar: Grammar, symbols: string[]): Set<string> {
         if (rhsFirst.has("ε") && symbols.length > 1) {
           const restFirst = computeFirst(grammar, symbols.slice(1))
           restFirst.forEach((symbol) => first.add(symbol))
-        }
+        } 
       }
     }
   }
@@ -145,7 +141,6 @@ function closure(grammar: Grammar, items: Item[]): Item[] {
 
   while (changed) {
     changed = false
-
     for (let i = 0; i < result.length; i++) {
       const item = result[i]
 
@@ -156,9 +151,7 @@ function closure(grammar: Grammar, items: Item[]): Item[] {
           const beta = item.production.rhs.slice(item.dotPosition + 1)
           const lookaheadSymbols = [...beta, ...item.lookahead]
           const firstSet = computeFirst(grammar, lookaheadSymbols)
-
           firstSet.delete("ε")
-
           for (const production of grammar.productions) {
             if (production.lhs === symbolAfterDot) {
               for (const lookahead of firstSet) {
@@ -167,7 +160,6 @@ function closure(grammar: Grammar, items: Item[]): Item[] {
                   dotPosition: 0,
                   lookahead: [lookahead],
                 }
-
                 if (!result.some((item) => itemsEqual(item, newItem))) {
                   result.push(newItem)
                   changed = true
@@ -204,7 +196,7 @@ export function generateClrItems(grammar: Grammar): State[] {
   const stateMap = new Map<string, number>()
 
   const initialItem: Item = {
-    production: grammar.productions[0], // S' -> S
+    production: grammar.productions[0],
     dotPosition: 0,
     lookahead: ["$"],
   }
@@ -334,10 +326,8 @@ export function generateParsingTable(states: State[], dfa: any, grammar: Grammar
     const { source, target, label } = edge
 
     if (grammar.terminals.includes(label)) {
-      // Shift action for terminals
       actions[source][label] = `s${target}`
     } else if (grammar.nonTerminals.includes(label)) {
-      // Goto action for non-terminals
       gotos[source][label] = target.toString()
     }
   }
@@ -366,4 +356,58 @@ export function generateParsingTable(states: State[], dfa: any, grammar: Grammar
     states: states.map((s) => s.id),
   }
 }
+
+export function parseString(grammar: Grammar, parsingTable: any, input: string): { isValid: boolean; steps: string[] } {
+  const steps: string[] = []
+  const stack: (string | number)[] = [0]
+  const tokens = [...input.split(/\s+/), "$"]
+  let pointer = 0
+
+  while (true) {
+    const currentState = stack[stack.length - 1] as number
+    const currentToken = tokens[pointer]
+    const action = parsingTable.actions[currentState]?.[currentToken]
+
+    if (!action) {
+      steps.push(`Error: No action found for state ${currentState} and token ${currentToken}`)
+      return { isValid: false, steps }
+    }
+
+    if (action === "acc") {
+      steps.push("String accepted!")
+      return { isValid: true, steps }
+    }
+
+    if (action.startsWith("s")) {
+      // Shift action
+      const nextState = parseInt(action.substring(1))
+      stack.push(currentToken, nextState)
+      steps.push(`Shift: ${currentToken} and go to state ${nextState}`)
+      pointer++
+    } else if (action.startsWith("r")) {
+      // Reduce action
+      const productionId = parseInt(action.substring(1))
+      const production = grammar.productions[productionId]
+      const popCount = production.rhs.length * 2 // Each symbol and state
+      
+      if (popCount > stack.length) {
+        steps.push(`Error: Stack underflow during reduction`)
+        return { isValid: false, steps }
+      }
+
+      stack.splice(-popCount)
+      const newState = stack[stack.length - 1] as number
+      const gotoState = parsingTable.gotos[newState]?.[production.lhs]
+
+      if (!gotoState) {
+        steps.push(`Error: No goto state found for ${production.lhs} in state ${newState}`)
+        return { isValid: false, steps }
+      }
+
+      stack.push(production.lhs, parseInt(gotoState))
+      steps.push(`Reduce: ${production.lhs} -> ${production.rhs.join(" ")} and go to state ${gotoState}`)
+    }
+  }
+}
+
 

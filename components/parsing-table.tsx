@@ -3,6 +3,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion"
+import { StringValidator } from "./string-validator"
 
 interface ParsingTableProps {
   parsingTable: {
@@ -12,9 +13,10 @@ interface ParsingTableProps {
     nonTerminals?: string[]
     states?: number[]
   }
+  grammar?: any
 }
 
-export function ParsingTable({ parsingTable }: ParsingTableProps) {
+export function ParsingTable({ parsingTable, grammar }: ParsingTableProps) {
   const { actions, gotos, terminals = [], nonTerminals = [], states = [] } = parsingTable
 
   if (Object.keys(actions).length === 0) {
@@ -27,7 +29,6 @@ export function ParsingTable({ parsingTable }: ParsingTableProps) {
     )
   }
 
-  // Animation variants for table cells
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -44,108 +45,112 @@ export function ParsingTable({ parsingTable }: ParsingTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <motion.div initial="hidden" animate="show" variants={container}>
-        <Table className="border">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="font-bold border bg-muted/50" rowSpan={2}>
-                State
-              </TableHead>
-              <TableHead
-                className="font-bold border text-center bg-blue-50 dark:bg-blue-950/30"
-                colSpan={terminals.length}
-              >
-                Action
-              </TableHead>
-              <TableHead
-                className="font-bold border text-center bg-indigo-50 dark:bg-indigo-950/30"
-                colSpan={nonTerminals.length}
-              >
-                Goto
-              </TableHead>
-            </TableRow>
-            <TableRow>
-              {/* Action columns (terminals) */}
-              {terminals.map((terminal) => (
-                <TableHead key={terminal} className="font-bold border text-center bg-blue-50/50 dark:bg-blue-950/20">
-                  <motion.div variants={item} className="font-mono">
-                    {terminal}
-                  </motion.div>
+    <div className="space-y-6">
+      <div className="overflow-x-auto">
+        <motion.div initial="hidden" animate="show" variants={container}>
+          <Table className="border">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="font-bold border bg-muted/50" rowSpan={2}>
+                  State
                 </TableHead>
-              ))}
-              {/* Goto columns (non-terminals) */}
-              {nonTerminals.map((nonTerminal) => (
                 <TableHead
-                  key={nonTerminal}
-                  className="font-bold border text-center bg-indigo-50/50 dark:bg-indigo-950/20"
+                  className="font-bold border text-center bg-blue-50 dark:bg-blue-950/30"
+                  colSpan={terminals.length}
                 >
-                  <motion.div variants={item} className="font-mono">
-                    {nonTerminal}
-                  </motion.div>
+                  Action
                 </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {states.map((state) => (
-              <TableRow key={state} className="hover:bg-muted/30 transition-colors">
-                <TableCell className="font-medium border bg-muted/20">
-                  <motion.div variants={item} className="font-mono">
-                    {state}
-                  </motion.div>
-                </TableCell>
-                {/* Action cells */}
+                <TableHead
+                  className="font-bold border text-center bg-indigo-50 dark:bg-indigo-950/30"
+                  colSpan={nonTerminals.length}
+                >
+                  Goto
+                </TableHead>
+              </TableRow>
+              <TableRow>
+                {/* Action columns (terminals) */}
                 {terminals.map((terminal) => (
-                  <TableCell key={`${state}-${terminal}`} className="border text-center">
-                    <motion.div
-                      variants={item}
-                      className={`font-mono ${
-                        actions[state] && actions[state][terminal] && actions[state][terminal].startsWith("s")
-                          ? "text-blue-600 dark:text-blue-400"
-                          : actions[state] && actions[state][terminal] && actions[state][terminal].startsWith("r")
-                            ? "text-green-600 dark:text-green-400"
-                            : actions[state] && actions[state][terminal] === "acc"
-                              ? "text-purple-600 dark:text-purple-400"
-                              : ""
-                      }`}
-                    >
-                      {actions[state] && actions[state][terminal] ? actions[state][terminal] : ""}
-                    </motion.div>
-                  </TableCell>
-                ))}
-                {/* Goto cells */}
-                {nonTerminals.map((nonTerminal) => (
-                  <TableCell key={`${state}-${nonTerminal}`} className="border text-center">
+                  <TableHead key={terminal} className="font-bold border text-center bg-blue-50/50 dark:bg-blue-950/20">
                     <motion.div variants={item} className="font-mono">
-                      {gotos[state] && gotos[state][nonTerminal] ? gotos[state][nonTerminal] : ""}
+                      {terminal}
                     </motion.div>
-                  </TableCell>
+                  </TableHead>
+                ))}
+                {/* Goto columns (non-terminals) */}
+                {nonTerminals.map((nonTerminal) => (
+                  <TableHead
+                    key={nonTerminal}
+                    className="font-bold border text-center bg-indigo-50/50 dark:bg-indigo-950/20"
+                  >
+                    <motion.div variants={item} className="font-mono">
+                      {nonTerminal}
+                    </motion.div>
+                  </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </motion.div>
+            </TableHeader>
+            <TableBody>
+              {states.map((state) => (
+                <TableRow key={state} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="font-medium border bg-muted/20">
+                    <motion.div variants={item} className="font-mono">
+                      {state}
+                    </motion.div>
+                  </TableCell>
+                  {/* Action cells */}
+                  {terminals.map((terminal) => (
+                    <TableCell key={`${state}-${terminal}`} className="border text-center">
+                      <motion.div
+                        variants={item}
+                        className={`font-mono ${
+                          actions[state] && actions[state][terminal] && actions[state][terminal].startsWith("s")
+                            ? "text-blue-600 dark:text-blue-400"
+                            : actions[state] && actions[state][terminal] && actions[state][terminal].startsWith("r")
+                              ? "text-green-600 dark:text-green-400"
+                              : actions[state] && actions[state][terminal] === "acc"
+                                ? "text-purple-600 dark:text-purple-400"
+                                : ""
+                        }`}
+                      >
+                        {actions[state] && actions[state][terminal] ? actions[state][terminal] : ""}
+                      </motion.div>
+                    </TableCell>
+                  ))}
+                  {/* Goto cells */}
+                  {nonTerminals.map((nonTerminal) => (
+                    <TableCell key={`${state}-${nonTerminal}`} className="border text-center">
+                      <motion.div variants={item} className="font-mono">
+                        {gotos[state] && gotos[state][nonTerminal] ? gotos[state][nonTerminal] : ""}
+                      </motion.div>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </motion.div>
 
-      <div className="mt-4 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
-          <span>
-            Shift actions (s<em>n</em>)
-          </span>
-        </div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
-          <span>
-            Reduce actions (r<em>n</em>)
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 rounded-full bg-purple-500"></span>
-          <span>Accept action (acc)</span>
+        <div className="mt-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
+            <span>
+              Shift actions (s<em>n</em>)
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
+            <span>
+              Reduce actions (r<em>n</em>)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-3 h-3 rounded-full bg-purple-500"></span>
+            <span>Accept action (acc)</span>
+          </div>
         </div>
       </div>
+
+      {grammar && <StringValidator grammar={grammar} parsingTable={parsingTable} />}
     </div>
   )
 }

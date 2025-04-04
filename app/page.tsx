@@ -33,26 +33,20 @@ export default function Home() {
         return
       }
 
-      // Add a small delay to show the loading state
       await new Promise((resolve) => setTimeout(resolve, 600))
 
-      // Parse the grammar
       const grammarObj = parseGrammar(grammar)
       setParsedGrammar(grammarObj)
 
-      // Generate CLR items
       const clrItems = generateClrItems(grammarObj)
       setItems(clrItems)
 
-      // Generate DFA
       const dfaResult = generateDfa(clrItems, grammarObj)
       setDfa(dfaResult)
 
-      // Generate parsing table
       const table = generateParsingTable(clrItems, dfaResult, grammarObj)
       setParsingTable(table)
 
-      // Switch to the DFA tab
       setActiveTab("dfa")
       setIsGenerating(false)
     } catch (err) {
@@ -65,10 +59,8 @@ export default function Home() {
     const exampleGrammar = "S -> A A\nA -> a A\nA -> b"
     setGrammar(exampleGrammar)
     
-    // Add a small delay to ensure state updates
     await new Promise((resolve) => setTimeout(resolve, 100))
     
-    // Automatically trigger parser generation
     await handleParseGrammar()
   }
 
@@ -242,7 +234,7 @@ export default function Home() {
                 <CardDescription>The generated parsing table with action and goto functions</CardDescription>
               </CardHeader>
               <CardContent>
-                <ParsingTable parsingTable={parsingTable} />
+                <ParsingTable parsingTable={parsingTable} grammar={parsedGrammar} />
 
                 {parsedGrammar && (
                   <motion.div
